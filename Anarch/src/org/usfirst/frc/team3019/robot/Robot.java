@@ -35,13 +35,12 @@ import org.usfirst.frc.team3019.robot.utilities.SystemStates;
  * directory.
  */
 
-
 public class Robot extends IterativeRobot {
 
-    public static SystemStates pickupPowerState = SystemStates.OFF;
+	public static SystemStates pickupPowerState = SystemStates.OFF;
 	public static PickupState pickupStates = PickupState.INTAKE;
 	public static CurrentAutoCommand currentAutoCommand = CurrentAutoCommand.STOP;
-	
+
 	public static Drivetrain driveTrain;
 	public static PickupSystem pickupSystem;
 	public static ShooterSystem shooterSystem;
@@ -49,45 +48,62 @@ public class Robot extends IterativeRobot {
 	public static AgitatorSystem agitatorSystem;
 	public static OI oi;
 
+	String autonomousCommandString;
 	Command autonomousCommand;
-	SendableChooser<Command> chooser = new SendableChooser<Command>();
+	SendableChooser<String> chooser;
+	SendableChooser<AutonomousMode> testChooser;
 
 	public Robot() {
 		instantiateSubsystems();
-		//create the chooser with all auto options
-		chooser.addDefault("DRIVEFWD", new AutonomousCommandGroup(AutonomousMode.DRIVEFWD));
-		chooser.addObject("TENSHOTRED", new AutonomousCommandGroup(AutonomousMode.TENSHOTRED));
-		chooser.addObject("TENSHOTBLUE", new AutonomousCommandGroup(AutonomousMode.TENSHOTBLUE));
-		chooser.addObject("TESTAUTO", new AutonomousCommandGroup(AutonomousMode.TESTAUTOBLUE));
-		chooser.addObject("GEARBLUE", new AutonomousCommandGroup(AutonomousMode.GEARBLUE));
-		chooser.addObject("COMBOBLUE", new AutonomousCommandGroup(AutonomousMode.BLUECOMBO));
+		// create the chooser with all auto options
+
 	}
+
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
 	 */
 	@Override
 	public void robotInit() {
+//		chooser = new SendableChooser<String>();
+		testChooser = new SendableChooser<AutonomousMode>();
+		for (AutonomousMode x : AutonomousMode.values()) {
+			if(x.equals(AutonomousMode.DRIVEFWD)){
+				testChooser.addDefault(x.toString(), x);
+			}else{
+				testChooser.addObject(x.toString(), x);
+			}
+			
+		}
 		
+//		chooser.addDefault("DRIVEFWD", "DRIVEFWD");
+//		chooser.addObject("RED-TENSHOT", "REDTENSHOT");
+//		chooser.addObject("BLUE-TENSHOT", "BLUETENSHOT");
+//		chooser.addObject("RED-GEAR", "REDGEAR");
+//		chooser.addObject("BLUE-GEAR", "BLUEGEAR");
+//		chooser.addObject("RED-COMBO", "REDCOMBO");
+//		chooser.addObject("BLUE-COMBO", "BLUECOMBO");
+		SmartDashboard.putData("autoChooser", testChooser);
 		oi = new OI();
-		new Thread(() -> {
-			
-            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-            camera.setResolution(640, 480);
-            
-            CvSink cvSink = CameraServer.getInstance().getVideo();
-            CvSource outputStream = CameraServer.getInstance().putVideo("Blur", 640, 480);
-            
-            Mat source = new Mat();
-            Mat output = new Mat();
-            
-            while(!Thread.interrupted()) {
-                cvSink.grabFrame(source);
-                Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2GRAY);
-                outputStream.putFrame(output);
-            }
-			
-        }).start();
+		
+//		new Thread(() -> {
+//			
+//            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+//            camera.setResolution(640, 480);
+//            
+//            CvSink cvSink = CameraServer.getInstance().getVideo();
+//            CvSource outputStream = CameraServer.getInstance().putVideo("Blur", 640, 480);
+//            
+//            Mat source = new Mat();
+//            Mat output = new Mat();
+//            
+//            while(!Thread.interrupted()) {
+//                cvSink.grabFrame(source);
+//                Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2GRAY);
+//                outputStream.putFrame(output);
+//            }
+//			
+//        }).start();
 		// chooser.addObject("My Auto", new MyAutoCommand());
 		
 	}
@@ -109,13 +125,14 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void disabledInit() {
-
+		
 	}
 
 	@Override
 	public void disabledPeriodic() {
-
-		SmartDashboard.putData("autochooser",chooser);
+			if(!SmartDashboard.containsKey("autoChooser")){
+				SmartDashboard.putData("autoChooser",testChooser);
+			}
 		Scheduler.getInstance().run();
 	}
 
@@ -132,18 +149,35 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		autonomousCommand = chooser.getSelected();
-
-		/*
-		 * String autoSelected = SmartDashboard.getString("Auto Selector",
-		 * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-		 * = new MyAutoCommand(); break; case "Default Auto": default:
-		 * autonomousCommand = new ExampleCommand(); break; }
-		 */
+		autonomousCommand = new AutonomousCommandGroup(testChooser.getSelected());
+//		autonomousCommandString = chooser.getSelected();
+//		switch (autonomousCommandString) {
+//		case "REDTENSHOT":
+//			autonomousCommand = new AutonomousCommandGroup(AutonomousMode.REDTENSHOT);
+//			break;
+//		case "REDGEAR":
+//			autonomousCommand = new AutonomousCommandGroup(AutonomousMode.REDGEAR);
+//			break;
+//		case "REDCOMBO":
+//			autonomousCommand = new AutonomousCommandGroup(AutonomousMode.REDCOMBO);
+//			break;
+//		case "BLUETENSHOT":
+//			autonomousCommand = new AutonomousCommandGroup(AutonomousMode.BLUETENSHOT);
+//			break;
+//		case "BLUEGEAR":
+//			autonomousCommand = new AutonomousCommandGroup(AutonomousMode.BLUEGEAR);
+//			break;
+//		case "BLUECOMBO":
+//			autonomousCommand = new AutonomousCommandGroup(AutonomousMode.BLUECOMBO);
+//			break;
+//		default:
+//			autonomousCommand = new AutonomousCommandGroup(AutonomousMode.DRIVEFWD);
+//			break;
+//		}
 
 		// schedule the autonomous command (example)
-		if (autonomousCommand != null)
-			autonomousCommand.start();
+		 if (autonomousCommand != null)
+		 autonomousCommand.start();
 	}
 
 	/**
@@ -151,7 +185,6 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		SmartDashboard.putString("Current Auto Command: ", String.valueOf(currentAutoCommand));
 		Scheduler.getInstance().run();
 	}
 
@@ -170,8 +203,8 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		if(pickupPowerState == SystemStates.ON){
-			if(pickupStates == PickupState.OUTTAKE){
+		if (pickupPowerState == SystemStates.ON) {
+			if (pickupStates == PickupState.OUTTAKE) {
 				pickupSystem.reverseMotor();
 			} else {
 				pickupSystem.runMotor();
@@ -179,9 +212,9 @@ public class Robot extends IterativeRobot {
 		} else {
 			pickupSystem.stopMotor();
 		}
-		SmartDashboard.putNumber("drivefactor",RobotMap.DRIVE_SCALE_FACTOR);
-		SmartDashboard.putNumber("shooterSpeed",RobotMap.SHOOTSPEED_SCALE_FACTOR);
-		SmartDashboard.putBoolean("Joystick",oi.shooterSwitch.get());
+		SmartDashboard.putNumber("drivefactor", RobotMap.DRIVE_SCALE_FACTOR);
+		SmartDashboard.putNumber("shooterSpeed", RobotMap.SHOOTSPEED_SCALE_FACTOR);
+		SmartDashboard.putBoolean("Joystick", oi.shooterSwitch.get());
 		SmartDashboard.putString("pickupState", pickupStates.toString());
 		Scheduler.getInstance().run();
 	}
